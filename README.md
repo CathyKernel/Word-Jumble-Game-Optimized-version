@@ -3,7 +3,7 @@
 
 A fun and interactive word puzzle game where players unscramble jumbled words to earn points. Customize the game with different categories and difficulty levels!
 
-![Game Screenshot](./images/wordjumblegame.jpg)
+![Game Screenshot](./wordjumblegame.jpg)
 
 ## Features ✨
 

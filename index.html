@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Jumble Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f0f8ff;
+        }
+        h1 {
+            color: #4b0082;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .jumbled-word {
+            font-size: 28px;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e6f7ff;
+            border-radius: 8px;
+            border: 2px dashed #4b0082;
+            min-height: 50px;
+        }
+        input {
+            padding: 12px;
+            font-size: 18px;
+            width: 250px;
+            margin-right: 10px;
+            border: 2px solid #4b0082;
+            border-radius: 8px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            background-color: #9370db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #8a2be2;
+            transform: scale(1.05);
+        }
+        .score {
+            font-size: 20px;
+            margin: 15px 0;
+            color: #4b0082;
+            font-weight: bold;
+        }
+        .hint {
+            color: #6a5acd;
+            font-style: italic;
+            margin: 15px 0;
+            min-height: 24px;
+        }
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .success {
+            color: #2e8b57;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        .error {
+            color: #ff4500;
+            font-size: 24px;
+        }
+        .hidden {
+            display: none;
+        }
+        .settings-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4b0082;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .settings-panel {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            width: 300px;
+            text-align: left;
+            z-index: 100;
+        }
+        .category-selector {
+            margin-bottom: 15px;
+        }
+        .category-selector select {
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #4b0082;
+        }
+        .word-bank-container {
+            margin-top: 15px;
+        }
+        .word-bank-container textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #4b0082;
+            font-family: Arial, sans-serif;
+        }
+        .word-bank-container button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .difficulty-selector {
+            margin: 15px 0;
+        }
+        .difficulty-selector label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .emoji-feedback {
+            font-size: 40px;
+            margin: 10px 0;
+            min-height: 50px;
+        }
+        .password-prompt {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 300px;
+        }
+        .password-prompt input {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .password-prompt button {
+            width: 100%;
+        }
+        .remember-password {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .remember-password input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .password-prompt h3 {
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #4b0082;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧩 Word Jumble Game 🧩</h1>
+    
+    <div class="game-container">
+        <div class="score">🌟 Score: <span id="score">0</span></div>
+        <div class="emoji-feedback" id="emoji-feedback"></div>
+        <div class="hint" id="hint"></div>
+        <div class="jumbled-word" id="jumbled-word"></div>
+        
+        <div>
+            <input type="text" id="guess" placeholder="Type your answer here..." autocomplete="off">
+            <button id="submit">Check Answer</button>
+        </div>
+        
+        <div class="controls">
+            <button id="hint-btn">💡 Hint (-3 points)</button>
+            <button id="skip">⏭ Skip (-1 point)</button>
+            <button id="new-game">🔄 New Game</button>
+        </div>
+    </div>
+
+    <!-- Hidden settings panel -->
+    <div class="settings-btn" id="settings-btn">⚙️</div>
+    <div class="settings-panel hidden" id="settings-panel">
+        <h3>Game Settings</h3>
+        
+        <div class="difficulty-selector">
+            <label for="difficulty">Difficulty Level:</label>
+            <select id="difficulty">
+                <option value="easy">Easy (3-5 letters)</option>
+                <option value="medium" selected>Medium (6-8 letters)</option>
+                <option value="hard">Hard (9+ letters)</option>
+            </select>
+        </div>
+        
+        <div class="category-selector">
+            <label for="category">Word Category:</label>
+            <select id="category">
+                <option value="fruits">Fruits</option>
+                <option value="animals">Animals</option>
+                <option value="colors">Colors</option>
+                <option value="custom">Custom Words</option>
+            </select>
+        </div>
+        
+        <div class="word-bank-container hidden" id="custom-words-container">
+            <h4>Custom Word Bank</h4>
+            <textarea id="word-bank"></textarea>
+            <button id="update-words">Update Word List</button>
+        </div>
+        
+        <div class="password-management">
+            <h4>Password Settings</h4>
+            <button id="change-password">Change Password</button>
+        </div>
+    </div>
+
+    <!-- Password prompt -->
+    <div class="password-prompt hidden" id="password-prompt">
+        <h3>Enter Password</h3>
+        <input type="password" id="password-input" placeholder="Enter password...">
+        <div class="remember-password">
+            <input type="checkbox" id="remember-password">
+            <label for="remember-password">Remember password</label>
+        </div>
+        <button id="password-submit">Submit</button>
+        <p id="password-error" style="color: red; display: none;">Incorrect password!</p>
+    </div>
+
+    <!-- Change password prompt -->
+    <div class="password-prompt hidden" id="change-password-prompt">
+        <h3>
+            <span>Change Password</span>
+            <button class="close-btn" id="close-change-password">✕</button>
+        </h3>
+        <input type="password" id="current-password" placeholder="Current password...">
+        <input type="password" id="new-password" placeholder="New password...">
+        <input type="password" id="confirm-password" placeholder="Confirm new password...">
+        <button id="change-password-submit">Change Password</button>
+        <p id="change-password-error" style="color: red; display: none;"></p>
+    </div>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let currentWord = '';
+        let jumbledWord = '';
+        let hint = '';
+        let words = [];
+        let usedWords = [];
+        let password = localStorage.getItem('wordJumblePassword') || 'admin123'; // Default password
+        let passwordProtected = true;
+        
+        // Word categories
+        const wordCategories = {
+            fruits: ['apple', 'banana', 'orange', 'grape', 'strawberry', 'blueberry', 'watermelon', 'pineapple', 'mango', 'kiwi', 'peach', 'pear', 'cherry', 'lemon', 'lime', 'apricot', 'blackberry', 'raspberry', 'coconut', 'fig', 'guava', 'melon', 'papaya', 'plum', 'pomegranate'],
+            animals: ['cat', 'dog', 'elephant', 'giraffe', 'lion', 'tiger', 'bear', 'zebra', 'monkey', 'kangaroo', 'penguin', 'dolphin', 'whale', 'shark', 'octopus', 'butterfly', 'eagle', 'parrot', 'crocodile', 'rhinoceros'],
+            colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'silver', 'gold', 'maroon', 'navy', 'teal', 'indigo', 'violet', 'cyan', 'magenta']
+        };
+        
+        // DOM elements
+        const jumbledWordEl = document.getElementById('jumbled-word');
+        const hintEl = document.getElementById('hint');
+        const scoreEl = document.getElementById('score');
+        const guessEl = document.getElementById('guess');
+        const submitBtn = document.getElementById('submit');
+        const hintBtn = document.getElementById('hint-btn');
+        const skipBtn = document.getElementById('skip');
+        const newGameBtn = document.getElementById('new-game');
+        const wordBankEl = document.getElementById('word-bank');
+        const updateWordsBtn = document.getElementById('update-words');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsPanel = document.getElementById('settings-panel');
+        const categorySelect = document.getElementById('category');
+        const difficultySelect = document.getElementById('difficulty');
+        const customWordsContainer = document.getElementById('custom-words-container');
+        const emojiFeedback = document.getElementById('emoji-feedback');
+        const passwordPrompt = document.getElementById('password-prompt');
+        const passwordInput = document.getElementById('password-input');
+        const passwordSubmit = document.getElementById('password-submit');
+        const passwordError = document.getElementById('password-error');
+        const rememberPassword = document.getElementById('remember-password');
+        const changePasswordBtn = document.getElementById('change-password');
+        const changePasswordPrompt = document.getElementById('change-password-prompt');
+        const currentPasswordInput = document.getElementById('current-password');
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const changePasswordSubmit = document.getElementById('change-password-submit');
+        const changePasswordError = document.getElementById('change-password-error');
+        const closeChangePasswordBtn = document.getElementById('close-change-password');
+        
+        // Check if password is saved
+        if (localStorage.getItem('wordJumblePasswordSaved') === 'true') {
+            passwordProtected = false; // Already authenticated
+            loadCustomWords();
+        }
+        
+        // Initialize game
+        function initGame() {
+            // Load words based on selected category
+            const category = categorySelect.value;
+            
+            if (category === 'custom') {
+                if (passwordProtected) {
+                    showPasswordPrompt();
+                    return;
+                }
+                words = wordBankEl.value.split(',').map(word => word.trim()).filter(word => word.length > 0);
+            } else {
+                words = [...wordCategories[category]];
+            }
+            
+            // Filter by difficulty
+            const difficulty = difficultySelect.value;
+            words = words.filter(word => {
+                if (difficulty === 'easy') return word.length <= 5;
+                if (difficulty === 'medium') return word.length >= 6 && word.length <= 8;
+                if (difficulty === 'hard') return word.length >= 9;
+                return true;
+            });
+            
+            if (words.length === 0) {
+                alert("No words available for the selected category and difficulty. Please try different settings.");
+                return;
+            }
+            
+            usedWords = [];
+            score = 0;
+            updateScore();
+            emojiFeedback.textContent = '';
+            nextWord();
+        }
+        
+        // Load custom words from localStorage
+        function loadCustomWords() {
+            const savedWords = localStorage.getItem('wordJumbleCustomWords');
+            if (savedWords) {
+                wordBankEl.value = savedWords;
+            } else {
+                wordBankEl.value = wordCategories.fruits.join(',');
+            }
+        }
+        
+        // Save custom words to localStorage
+        function saveCustomWords() {
+            localStorage.setItem('wordJumbleCustomWords', wordBankEl.value);
+        }
+        
+        // Show password prompt
+        function showPasswordPrompt() {
+            passwordPrompt.classList.remove('hidden');
+            passwordInput.focus();
+        }
+        
+        // Hide password prompt
+        function hidePasswordPrompt() {
+            passwordPrompt.classList.add('hidden');
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+        }
+        
+        // Show change password prompt
+        function showChangePasswordPrompt() {
+            changePasswordPrompt.classList.remove('hidden');
+            currentPasswordInput.focus();
+        }
+        
+        // Hide change password prompt
+        function hideChangePasswordPrompt() {
+            changePasswordPrompt.classList.add('hidden');
+            currentPasswordInput.value = '';
+            newPasswordInput.value = '';
+            confirmPasswordInput.value = '';
+            changePasswordError.style.display = 'none';
+        }
+        
+        // Verify password
+        function verifyPassword(inputPassword) {
+            return inputPassword === password;
+        }
+        
+        // Get a random word from the list
+        function getRandomWord() {
+            if (usedWords.length === words.length) {
+                usedWords = []; // Reset if all words have been used
+            }
+            
+            let availableWords = words.filter(word => !usedWords.includes(word));
+            
+            if (availableWords.length === 0) {
+                return null; // No more words available
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            return availableWords[randomIndex];
+        }
+        
+        // Jumble a word
+        function jumbleWord(word) {
+            let jumbled = word.split('');
+            for (let i = jumbled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [jumbled[i], jumbled[j]] = [jumbled[j], jumbled[i]];
+            }
+            
+            // If by chance the word isn't jumbled, try again
+            if (jumbled.join('') === word) {
+                return jumbleWord(word);
+            }
+            
+            return jumbled.join('');
+        }
+        
+        // Generate a hint
+        function generateHint(word) {
+            if (word.length <= 3) {
+                return `Starts with "${word[0]}"`;
+            }
+            
+            // For longer words, show first and last letters plus length
+            return `Starts with "${word[0]}", ends with "${word[word.length - 1]}", and has ${word.length} letters`;
+        }
+        
+        // Display next word
+        function nextWord() {
+            currentWord = getRandomWord();
+            
+            if (!currentWord) {
+                jumbledWordEl.textContent = "🎉 Game Over! You've used all the words. 🎉";
+                hintEl.textContent = "";
+                emojiFeedback.textContent = "🏆";
+                return;
+            }
+            
+            usedWords.push(currentWord);
+            jumbledWord = jumbleWord(currentWord);
+            hint = generateHint(currentWord);
+            
+            jumbledWordEl.textContent = jumbledWord;
+            hintEl.textContent = "";
+            guessEl.value = "";
+            guessEl.focus();
+            emojiFeedback.textContent = '';
+        }
+        
+        // Check the player's guess
+        function checkGuess() {
+            const guess = guessEl.value.trim().toLowerCase();
+            
+            if (guess === currentWord.toLowerCase()) {
+                score += 10;
+                updateScore();
+                jumbledWordEl.innerHTML = `<span class="success">✅ Correct! It was "${currentWord}"</span>`;
+                emojiFeedback.textContent = "🎉🌟";
+                setTimeout(nextWord, 2000);
+            } else {
+                jumbledWordEl.innerHTML = `<span class="error">❌ Incorrect. Try again!</span>`;
+                emojiFeedback.textContent = "😕";
+                setTimeout(() => {
+                    jumbledWordEl.textContent = jumbledWord;
+                    emojiFeedback.textContent = '';
+                }, 1500);
+            }
+        }
+        
+        // Update score display
+        function updateScore() {
+            scoreEl.textContent = score;
+        }
+        
+        // Show hint
+        function showHint() {
+            hintEl.textContent = hint;
+            score = Math.max(0, score - 3); // Deduct points for using hint
+            updateScore();
+            emojiFeedback.textContent = "💡";
+        }
+        
+        // Skip current word
+        function skipWord() {
+            score = Math.max(0, score - 1); // Deduct points for skipping
+            updateScore();
+            emojiFeedback.textContent = "⏭";
+            setTimeout(() => {
+                nextWord();
+            }, 500);
+        }
+        
+        // Toggle settings panel
+        function toggleSettings() {
+            settingsPanel.classList.toggle('hidden');
+        }
+        
+        // Handle category change
+        function handleCategoryChange() {
+            if (categorySelect.value === 'custom') {
+                if (passwordProtected) {
+                    showPasswordPrompt();
+                    customWordsContainer.classList.add('hidden');
+                } else {
+                    customWordsContainer.classList.remove('hidden');
+                }
+            } else {
+                customWordsContainer.classList.add('hidden');
+            }
+        }
+        
+        // Event listeners
+        submitBtn.addEventListener('click', checkGuess);
+        guessEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkGuess();
+            }
+        });
+        hintBtn.addEventListener('click', showHint);
+        skipBtn.addEventListener('click', skipWord);
+        newGameBtn.addEventListener('click', initGame);
+        updateWordsBtn.addEventListener('click', () => {
+            saveCustomWords();
+            initGame();
+        });
+        settingsBtn.addEventListener('click', toggleSettings);
+        categorySelect.addEventListener('change', handleCategoryChange);
+        
+        // Password prompt events
+        passwordSubmit.addEventListener('click', () => {
+            if (verifyPassword(passwordInput.value)) {
+                passwordProtected = false;
+                if (rememberPassword.checked) {
+                    localStorage.setItem('wordJumblePasswordSaved', 'true');
+                }
+                hidePasswordPrompt();
+                loadCustomWords();
+                customWordsContainer.classList.remove('hidden');
+            } else {
+                passwordError.style.display = 'block';
+            }
+        });
+        
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                passwordSubmit.click();
+            }
+        });
+        
+        // Change password events
+        changePasswordBtn.addEventListener('click', showChangePasswordPrompt);
+        closeChangePasswordBtn.addEventListener('click', hideChangePasswordPrompt);
+        
+        changePasswordSubmit.addEventListener('click', () => {
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (!verifyPassword(currentPassword)) {
+                changePasswordError.textContent = "Current password is incorrect!";
+                changePasswordError.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword.length < 4) {
+                changePasswordError.textContent = "Password must be at least 4 characters!";
+                changePasswordError.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                changePasswordError.textContent = "New passwords don't match!";
+                changePasswordError.style.display = 'block';
+                return;
+            }
+            
+            password = newPassword;
+            localStorage.setItem('wordJumblePassword', newPassword);
+            hideChangePasswordPrompt();
+            alert("Password changed successfully!");
+        });
+        
+        currentPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                changePasswordSubmit.click();
+            }
+        });
+        
+        newPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                changePasswordSubmit.click();
+            }
+        });
+        
+        confirmPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                changePasswordSubmit.click();
+            }
+        });
+        
+        // Initialize category display
+        handleCategoryChange();
+        
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
